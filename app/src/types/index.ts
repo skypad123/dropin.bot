@@ -143,6 +143,16 @@ export interface KnowledgeBase {
 export type ChannelType = 'slack' | 'discord' | 'web-widget' | 'whatsapp' | 'api' | 'email' | 'telegram' | 'teams';
 export type ChannelStatus = 'connected' | 'disconnected' | 'error' | 'pending';
 
+export interface ChannelMeta {
+  label: string;
+  icon: string;
+  color: string;
+  bg: string;
+  tagline: string;
+  svg: React.ReactNode;
+  fields: { key: string; label: string; placeholder: string; secret?: boolean }[];
+}
+
 export interface Channel {
   id: string;
   name: string;

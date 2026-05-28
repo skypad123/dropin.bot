@@ -12,6 +12,7 @@ import TeamDetailPage from './pages/TeamDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import AgentConfigPage from './pages/AgentConfigPage';
 import ChannelsPage from './pages/ChannelsPage';
+import WorkflowPage from './pages/WorkflowPage';
 import KnowledgeBasesPage from './pages/KnowledgeBasesPage';
 import FilesPage from './pages/FilesPage';
 import AppsPage from './pages/AppsPage';
@@ -28,7 +29,7 @@ function AppShell() {
         <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBasesPage /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><TeamsPage /></ProtectedRoute>} />
         <Route path="/teams/:id" element={<ProtectedRoute><TeamDetailPage /></ProtectedRoute>} />
-        <Route path="/workflows" element={<ProtectedRoute><ChannelsPage /></ProtectedRoute>} />
+        <Route path="/workflows" element={<ProtectedRoute><WorkflowPage /></ProtectedRoute>} />
         <Route path="/channels" element={<ProtectedRoute><ChannelsPage /></ProtectedRoute>} />
         <Route path="/files" element={<ProtectedRoute><FilesPage /></ProtectedRoute>} />
         <Route path="/apps" element={<ProtectedRoute><AppsPage /></ProtectedRoute>} />

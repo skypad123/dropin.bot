@@ -153,8 +153,8 @@ export default function FilesPage() {
       </div>
 
       {/* File browser */}
-      <div className="flex flex-col flex-1 min-h-0 px-6 lg:px-10 pt-6">
-        <div className="flex gap-0 overflow-hidden flex-1 min-h-0 -mx-6 lg:-mx-10" style={{ border: '1px solid var(--border-color)', borderLeft: 'none', borderRight: 'none' }}>
+      <div className="flex flex-col flex-1 min-h-0 px-6 lg:px-10 ">
+        <div className="flex gap-0 overflow-hidden flex-1 min-h-0 -mx-6 lg:-mx-10" style={{ border: '1px solid var(--border-color)', borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}>
           {/* Left: Tree panel */}
           <div className="w-56 flex-shrink-0 flex flex-col overflow-hidden" style={{ borderRight: '1px solid var(--border-color)', background: 'var(--bg-surface)' }}>
             <div className="px-3 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-color)' }}>
