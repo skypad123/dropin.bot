@@ -40,6 +40,7 @@ export const INITIAL_WORKSPACES: Workspace[] = [
       { id: 'ds3', name: 'Help Center',     type: 'web-url',    connectionString: 'https://help.dropin.bot',                    status: 'connected' },
     ],
     mcps: [],
+    tools: [],
     env: [
       { id: 'e1', name: 'agents', type: 'folder', modifiedAt: 'May 26, 2026', children: [
         { id: 'e1a', name: 'assistant.py',   type: 'py',   size: '8.2 KB',  modifiedAt: 'May 26, 2026' },
@@ -78,6 +79,7 @@ export const INITIAL_WORKSPACES: Workspace[] = [
       { id: 'ds5', name: 'GitHub API',  type: 'rest-api',   connectionString: 'https://api.github.com',                  status: 'connected' },
     ],
     mcps: [],
+    tools: [],
     env: [
       { id: 'f1', name: 'src', type: 'folder', modifiedAt: 'May 27, 2026', children: [
         { id: 'f1a', name: 'index.ts',  type: 'ts', size: '5.1 KB', modifiedAt: 'May 27, 2026' },

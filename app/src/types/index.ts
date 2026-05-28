@@ -66,6 +66,7 @@ export interface Workspace {
   documents: WorkspaceDoc[];
   dataSources: DataSource[];
   mcps: { id: string; name: string; url: string; apiKey: string }[];
+  tools: { id: string; label: string; config: Record<string, string> }[];
   env: EnvNode[];
   collaborators: Collaborator[];
 }

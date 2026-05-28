@@ -189,7 +189,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="px-3 flex-1">
+      <nav className="px-3 flex-1 overflow-y-auto min-h-0">
         <div style={{ margin: '6px 12px 2px 12px' }}>
           <p className="text-[10px] font-semibold uppercase tracking-widest px-2 mb-1" style={{ color: 'var(--text-muted)' }}>1. Setup</p>
           <div style={{ borderTop: '1px solid var(--border-color)' }} />

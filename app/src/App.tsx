@@ -12,7 +12,8 @@ import TeamDetailPage from './pages/TeamDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import AgentConfigPage from './pages/AgentConfigPage';
 import ChannelsPage from './pages/ChannelsPage';
-import WorkflowPage from './pages/WorkflowPage';
+import WorkflowsPage from './pages/WorkflowsPage';
+import WorkflowCanvasPage from './pages/WorkflowCanvasPage';
 import KnowledgeBasesPage from './pages/KnowledgeBasesPage';
 import FilesPage from './pages/FilesPage';
 import AppsPage from './pages/AppsPage';
@@ -24,12 +25,12 @@ function AppShell() {
     <div className="lg:ml-60">
       <Sidebar />
       <Routes>
-        <Route path="/" element={<Navigate to="/agents" replace />} />
+        <Route path="/" element={<Navigate to="/workflows" replace />} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBasesPage /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><TeamsPage /></ProtectedRoute>} />
         <Route path="/teams/:id" element={<ProtectedRoute><TeamDetailPage /></ProtectedRoute>} />
-        <Route path="/workflows" element={<ProtectedRoute><WorkflowPage /></ProtectedRoute>} />
+        <Route path="/workflows" element={<ProtectedRoute><WorkflowsPage /></ProtectedRoute>} />
         <Route path="/channels" element={<ProtectedRoute><ChannelsPage /></ProtectedRoute>} />
         <Route path="/files" element={<ProtectedRoute><FilesPage /></ProtectedRoute>} />
         <Route path="/apps" element={<ProtectedRoute><AppsPage /></ProtectedRoute>} />
@@ -50,6 +51,8 @@ function RootRouter() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      {/* Full-screen canvas — outside AppShell so no sidebar renders */}
+      <Route path="/workflows/:id" element={<ProtectedRoute><WorkflowCanvasPage /></ProtectedRoute>} />
       <Route path="/*" element={<AppShell />} />
     </Routes>
   );
@@ -60,11 +63,11 @@ export default function App() {
     <HashRouter>
       <ThemeProvider>
         <AuthProvider>
-      <StoreProvider>
-        <WorkspaceProvider>
-          <RootRouter />
-        </WorkspaceProvider>
-      </StoreProvider>
+          <StoreProvider>
+            <WorkspaceProvider>
+              <RootRouter />
+            </WorkspaceProvider>
+          </StoreProvider>
         </AuthProvider>
       </ThemeProvider>
     </HashRouter>

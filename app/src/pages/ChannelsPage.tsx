@@ -214,7 +214,7 @@ function ChannelRow({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Left column */}
             <div className="space-y-4">
               {/* Stats */}
@@ -422,7 +422,7 @@ function NewChannelModal({
           {/* Type grid */}
           <div>
             <label className="section-label mb-2 block">Channel Type</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(Object.entries(CHANNEL_META) as [ChannelType, typeof CHANNEL_META[ChannelType]][]).map(([key, meta]) => (
                 <button
                   key={key}
@@ -561,28 +561,82 @@ export default function ChannelsPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* ── Page header ── */}
       <div
-        className="sticky top-0 z-10 px-6 lg:px-10 py-4 flex items-center justify-between gap-4 flex-shrink-0"
+        className="sticky top-0 z-10 px-4 sm:px-6 lg:px-10 py-4 flex-shrink-0"
         style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}
       >
-        <div>
-          <p className="section-label mb-0">setup</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>
-              Channels
-            </h1>
-            <InfoTooltip content="Channels are the integration surfaces where your agents connect to the outside world — Slack, Discord, web widgets, WhatsApp, REST API, email, and more. Each channel can be connected and configured independently." />
+        <div className="w-full flex items-center justify-between gap-4">
+          <div>
+            <p className="section-label mb-0">setup</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>
+                Channels
+              </h1>
+              <InfoTooltip content="Channels are the integration surfaces where your agents connect to the outside world — Slack, Discord, web widgets, WhatsApp, REST API, email, and more. Each channel can be connected and configured independently." />
+            </div>
           </div>
+          <button
+            onClick={() => setModalType('web-widget')}
+            className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient flex-shrink-0"
+            style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.25)' }}
+          >
+            <Plus size={16} /> <span className="hidden xs:inline sm:inline">New Channel</span>
+          </button>
         </div>
-        <button
-          onClick={() => setModalType('web-widget')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient"
-          style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.25)' }}
-        >
-          <Plus size={16} /> New Channel
-        </button>
       </div>
 
-      <div className="px-6 lg:px-10 py-8 space-y-10 max-w-6xl">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 space-y-10">
+
+
+                {/* ── Zone 3: Quick stats footer ── */}
+        {workspaceChannels.length > 0 && (
+          <section>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                {
+                  label: 'Total Messages',
+                  value: workspaceChannels.reduce((s, c) => s + c.messages, 0).toLocaleString(),
+                  icon: <Zap size={16} style={{ color: 'var(--burnt-orange)' }} />,
+                },
+                {
+                  label: 'Connected',
+                  value: workspaceChannels.filter(c => c.status === 'connected').length,
+                  icon: <CheckCircle2 size={16} style={{ color: '#2D7D46' }} />,
+                },
+                {
+                  label: 'Platforms',
+                  value: new Set(workspaceChannels.map(c => c.type)).size,
+                  icon: <Plug size={16} style={{ color: 'var(--burnt-orange)' }} />,
+                },
+                {
+                  label: 'With Agent',
+                  value: workspaceChannels.filter(c => c.agentId).length,
+                  icon: <Bot size={16} style={{ color: 'var(--burnt-orange)' }} />,
+                },
+              ].map(stat => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl px-5 py-4 flex items-center gap-3"
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}
+                >
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(192,86,64,0.08)' }}
+                  >
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <p className="font-display font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>
+                      {stat.value}
+                    </p>
+                    <p className="font-mono text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Zone 1: Catalog strip ── */}
         <section>
@@ -609,7 +663,7 @@ export default function ChannelsPage() {
 
         {/* ── Zone 2: Connected channels ── */}
         <section>
-          <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <p className="section-label mb-0">connected channels</p>
               <span
@@ -621,7 +675,7 @@ export default function ChannelsPage() {
             </div>
 
             {/* Search + filter */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div className="relative">
                 <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
                 <input
@@ -632,7 +686,7 @@ export default function ChannelsPage() {
                   onChange={e => setSearch(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                 {(['all', ...Object.keys(CHANNEL_META)] as (ChannelType | 'all')[]).map(t => (
                   <button
                     key={t}
@@ -697,56 +751,7 @@ export default function ChannelsPage() {
           )}
         </section>
 
-        {/* ── Zone 3: Quick stats footer ── */}
-        {workspaceChannels.length > 0 && (
-          <section>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                {
-                  label: 'Total Messages',
-                  value: workspaceChannels.reduce((s, c) => s + c.messages, 0).toLocaleString(),
-                  icon: <Zap size={16} style={{ color: 'var(--burnt-orange)' }} />,
-                },
-                {
-                  label: 'Connected',
-                  value: workspaceChannels.filter(c => c.status === 'connected').length,
-                  icon: <CheckCircle2 size={16} style={{ color: '#2D7D46' }} />,
-                },
-                {
-                  label: 'Platforms',
-                  value: new Set(workspaceChannels.map(c => c.type)).size,
-                  icon: <Plug size={16} style={{ color: 'var(--burnt-orange)' }} />,
-                },
-                {
-                  label: 'With Agent',
-                  value: workspaceChannels.filter(c => c.agentId).length,
-                  icon: <Bot size={16} style={{ color: 'var(--burnt-orange)' }} />,
-                },
-              ].map(stat => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl px-5 py-4 flex items-center gap-3"
-                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(192,86,64,0.08)' }}
-                  >
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className="font-display font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>
-                      {stat.value}
-                    </p>
-                    <p className="font-mono text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                      {stat.label}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+
       </div>
 
       {/* ── New Channel Modal ── */}
