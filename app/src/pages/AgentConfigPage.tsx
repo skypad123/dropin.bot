@@ -23,7 +23,6 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
     region: existing?.region ?? 'us-east',
     environment: existing?.environment ?? 'production',
     temperature: existing?.temperature ?? 0.7,
-    personality: existing?.personality ?? '',
     systemPrompt: existing?.systemPrompt ?? '',
     workspaceId: existing?.workspaceId ?? activeWorkspaceId ?? '',
     memories: existing?.memories ?? { organiser: 'file' as const },
@@ -56,7 +55,6 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
         status: 'running',
         integrations,
         temperature: form.temperature,
-        personality: form.personality,
         systemPrompt: form.systemPrompt,
         region: form.region,
         environment: form.environment,
@@ -70,7 +68,6 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
         name: form.name,
         model: form.model,
         temperature: form.temperature,
-        personality: form.personality,
         systemPrompt: form.systemPrompt,
         region: form.region,
         environment: form.environment,
@@ -175,15 +172,15 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
               </div>
             </div>
 
-            {/* Model & Personality */}
+            {/* Model */}
             <div className={sectionClass} style={sectionStyle}>
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(192, 86, 64, 0.10)' }}>
                   <Brain size={20} style={{ color: 'var(--burnt-orange)' }} />
                 </div>
                 <div>
-                  <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Model & Personality</h3>
-                  <p className="font-body text-xs" style={{ color: 'var(--text-secondary)' }}>Choose the brain and voice for your assistant.</p>
+                  <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Model</h3>
+                  <p className="font-body text-xs" style={{ color: 'var(--text-secondary)' }}>Choose the brain and behavior settings for your assistant.</p>
                 </div>
               </div>
 
@@ -326,11 +323,6 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
                     <span className="font-body text-[11px]" style={{ color: 'var(--text-muted)' }}>Focused</span>
                     <span className="font-body text-[11px]" style={{ color: 'var(--text-muted)' }}>Creative</span>
                   </div>
-                </div>
-
-                <div>
-                  <label className={labelClass} style={labelStyle}>Personality</label>
-                  <textarea className="form-input form-textarea" rows={3} placeholder="Describe how your assistant should behave..." value={form.personality} onChange={e => update('personality', e.target.value)} />
                 </div>
 
                 <div>

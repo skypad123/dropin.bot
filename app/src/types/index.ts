@@ -12,7 +12,6 @@ export interface Instance {
   usage: number;
   lastActive: string;
   temperature: number;
-  personality: string;
   systemPrompt: string;
   region: string;
   environment: string;
