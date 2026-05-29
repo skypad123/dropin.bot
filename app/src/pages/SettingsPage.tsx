@@ -9,7 +9,7 @@ export default function SettingsPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <div className="sticky top-0 z-20 px-6 lg:px-10 h-16 flex items-center justify-between" style={{ background: 'var(--bg-primary)' }}>
         <div>
-          <p className="section-label mb-0">// preferences</p>
+          <p className="section-label mb-0">preferences</p>
           <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Settings</h1>
         </div>
       </div>
@@ -17,7 +17,7 @@ export default function SettingsPage() {
         <div className="w-full lg:w-48 mb-4 lg:mb-0">
           <div className="flex flex-col space-y-1">
             {tabs.map(t => (
-              <button key={t} onClick={() => setActiveTab(t as any)} className="text-left px-3 py-2 rounded-md font-medium"
+              <button key={t} onClick={() => setActiveTab(t as 'profile'|'security'|'notifications'|'billing'|'account')} className="text-left px-3 py-2 rounded-md font-medium"
                 style={{
                   background: activeTab===t ? 'rgba(192,86,64,0.10)' : 'transparent',
                   color: activeTab===t ? 'var(--burnt-orange)' : 'var(--text-primary)'
@@ -32,7 +32,7 @@ export default function SettingsPage() {
                 <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--burnt-orange)', color: 'white', fontFamily: 'Space Grotesk' }}>{user?.name?.[0] ?? 'U'}</div>
                 <div>
                   <p className="font-display font-bold text-lg">{user?.name}</p>
-                  <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>{user?.email} <span className="ml-1 px-1.5 py-0.5 bg-rgba(0,128,0,0.1) text-rgba(0,128,0) text-xs rounded">verified</span></p>
+                  <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>{user?.email} <span className="ml-1 px-1.5 py-0.5 text-xs rounded" style={{ background: 'rgba(45,125,70,0.12)', color: '#2D7D46' }}>verified</span></p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,8 +110,8 @@ export default function SettingsPage() {
               <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
                 <p className="section-label mb-1">Usage</p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-var(--border-color) rounded-full overflow-hidden">
-                    <div className="h-full bg-var(--burnt-orange)" style={{ width: '70%' }} />
+                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-color)' }}>
+                    <div className="h-full" style={{ width: '70%', background: 'var(--burnt-orange)' }} />
                   </div>
                   <span className="font-mono text-[10px]" style={{ color: 'var(--text-primary)' }}>70%</span>
                 </div>
@@ -123,7 +123,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-body text-sm">Visa ending 4242</span>
                   </div>
-                  <button className="px-3 py-1 rounded-full text-sm font-medium bg-var(--bg-surface)" style={{ border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Update</button>
+                  <button className="px-3 py-1 rounded-full text-sm font-medium" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Update</button>
                 </div>
               </div>
               <div className="rounded-2xl p-5" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
@@ -143,7 +143,7 @@ export default function SettingsPage() {
           {activeTab === 'account' && (
             <div>
               <div className="rounded-2xl p-5 mb-4 border border-red-600" style={{ background: 'var(--bg-primary)' }}>
-                <p className="section-label mb-1 text-red-600">Delete Account</p>
+                <p className="section-label mb-1" style={{ color: '#DC2626' }}>Delete Account</p>
                 <p className="font-body text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>This action cannot be undone. All data will be lost.</p>
                 <button className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white bg-red-600 hover:-translate-y-0.5" style={{ boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}>
                   Delete Account

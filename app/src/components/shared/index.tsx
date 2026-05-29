@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Plug, Slack, MessageCircle, Globe, X, Bot, Sun, Moon, LogOut, Layers, BookOpen, Users, MessageSquare, Settings, FolderOpen, Zap, Lock, ChevronDown, Check, Plus } from 'lucide-react';
+import { Plug, Slack, MessageCircle, Globe, X, Bot, Sun, Moon, LogOut, Layers, BookOpen, Users, MessageSquare, Settings, FolderOpen, Zap, Lock, ChevronDown, Check, Plus, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
@@ -9,9 +9,24 @@ import type { Instance } from '../../types';
 
 export function InfoTooltip({ content }: { content: string }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ top: boolean; right: boolean }>({ top: false, right: false });
+
+  useEffect(() => {
+    if (!open || !btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const tooltipH = 120; // conservative estimate
+    const tooltipW = 288; // w-72
+    setPos({
+      top: rect.bottom + tooltipH > window.innerHeight && rect.top > tooltipH,
+      right: rect.left + tooltipW > window.innerWidth,
+    });
+  }, [open]);
+
   return (
     <div className="relative inline-flex items-center">
       <button
+        ref={btnRef}
         type="button"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -25,9 +40,14 @@ export function InfoTooltip({ content }: { content: string }) {
       >?</button>
       {open && (
         <div
-          className="absolute left-7 top-1/2 z-50 w-72 rounded-2xl p-4 shadow-xl"
+          className="absolute z-50 w-72 rounded-2xl p-4"
           style={{
-            transform: 'translateY(-50%)',
+            ...(pos.top
+              ? { bottom: 'calc(100% + 8px)', top: 'auto' }
+              : { top: 'calc(100% + 8px)', bottom: 'auto' }),
+            ...(pos.right
+              ? { right: 0, left: 'auto' }
+              : { left: 0, right: 'auto' }),
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-lg)',
@@ -189,7 +209,30 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="px-3 flex-1 overflow-y-auto min-h-0">
+      <nav className="scroll-y-kb px-3 flex-1 min-h-0">
+        {/* Dashboard — above all groups */}
+        {(() => {
+          const path = '/dashboard';
+          const isActive = location.pathname === path;
+          return (
+            <button
+              onClick={() => { navigate(path); setMobileOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 mb-1 mt-1"
+              style={{
+                background: isActive ? 'rgba(192, 86, 64, 0.10)' : 'transparent',
+                color: isActive ? 'var(--burnt-orange)' : 'var(--text-primary)',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(192, 86, 64, 0.06)'; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+            >
+              <LayoutDashboard size={18} className="flex-shrink-0" />
+              <div className="text-left min-w-0">
+                <p className="text-sm font-semibold leading-tight" style={{ color: isActive ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>Dashboard</p>
+                <p className="text-[10px] font-normal leading-tight mt-0.5" style={{ color: isActive ? 'rgba(192,86,64,0.65)' : 'var(--text-muted)' }}>Workspace overview</p>
+              </div>
+            </button>
+          );
+        })()}
         <div style={{ margin: '6px 12px 2px 12px' }}>
           <p className="text-[10px] font-semibold uppercase tracking-widest px-2 mb-1" style={{ color: 'var(--text-muted)' }}>1. Setup</p>
           <div style={{ borderTop: '1px solid var(--border-color)' }} />

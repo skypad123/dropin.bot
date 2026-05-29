@@ -341,143 +341,6 @@ function AppRow({
 
 // ── New App Modal ─────────────────────────────────────────────────────────────
 
-function NewAppModal({
-  addedNames,
-  onClose,
-  onAdd,
-}: {
-  addedNames: string[];
-  onClose: () => void;
-  onAdd: (name: string) => void;
-}) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [customName, setCustomName] = useState('');
-
-  const isCustom = selected === 'Custom MCP';
-  const canSubmit = !!selected && (isCustom ? customName.trim() !== '' : true);
-
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    onAdd(isCustom ? customName.trim() : selected!);
-    setSelected(null);
-    setCustomName('');
-    onClose();
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(45,42,38,0.55)', backdropFilter: 'blur(6px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl p-6"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-            Add MCP Server
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Type grid */}
-          <div>
-            <label className="section-label mb-2 block">Server Type</label>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESET_MCPS.map(p => {
-                const meta = getMcpMeta(p.name);
-                const isAdded = addedNames.includes(p.name);
-                const isSelected = selected === p.name;
-                return (
-                  <button
-                    key={p.name}
-                    type="button"
-                    onClick={() => { if (!isAdded) setSelected(p.name); }}
-                    disabled={isAdded}
-                    className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{
-                      border: `1.5px solid ${isSelected ? meta.color : 'var(--border-color)'}`,
-                      background: isSelected ? meta.bg : 'var(--bg-elevated)',
-                    }}
-                    onMouseEnter={e => {
-                      if (!isAdded && !isSelected)
-                        e.currentTarget.style.borderColor = meta.color + '55';
-                    }}
-                    onMouseLeave={e => {
-                      if (!isAdded && !isSelected)
-                        e.currentTarget.style.borderColor = 'var(--border-color)';
-                    }}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ background: meta.bg, color: meta.color }}
-                    >
-                      {getMcpIcon(p.name)}
-                    </div>
-                    <span
-                      className="font-mono text-[9px] font-semibold text-center leading-tight"
-                      style={{ color: isSelected ? meta.color : 'var(--text-muted)' }}
-                    >
-                      {p.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Custom name input (only when Custom MCP selected) */}
-          {isCustom && (
-            <div>
-              <label className="section-label mb-1.5 block">Server Name</label>
-              <input
-                className="form-input w-full"
-                placeholder="e.g. My Internal API"
-                value={customName}
-                onChange={e => setCustomName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                autoFocus
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--burnt-orange)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="px-5 py-2 rounded-full text-sm font-semibold text-white brand-gradient disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ boxShadow: canSubmit ? '0 4px 12px rgba(192,86,64,0.25)' : 'none' }}
-          >
-            Add Server
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AppsPage() {
@@ -487,8 +350,6 @@ export default function AppsPage() {
 
   const [search, setSearch] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
   const mcps = activeWs?.mcps ?? [];
   const addedNames = mcps.map(m => m.name);
 
@@ -546,13 +407,7 @@ export default function AppsPage() {
               <InfoTooltip content="Apps connect MCP servers to your workspace, giving agents access to external tools and data sources like GitHub, Notion, Slack, and more." />
             </div>
           </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient flex-shrink-0"
-            style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.25)' }}
-          >
-            <Plus size={16} /> <span>Add App</span>
-          </button>
+
         </div>
       </div>
 
@@ -619,8 +474,7 @@ export default function AppsPage() {
             </span>
           </div>
           <div
-            className="flex gap-3 overflow-x-auto pb-2"
-            style={{ scrollbarWidth: 'none' }}
+            className="scroll-x-cards flex gap-3"
           >
             {PRESET_MCPS.map(p => (
               <AppCatalogCard
@@ -681,16 +535,9 @@ export default function AppsPage() {
               <p className="font-display font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 No MCP servers connected
               </p>
-              <p className="font-body text-sm mt-1 mb-5" style={{ color: 'var(--text-muted)' }}>
+              <p className="font-body text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
                 Pick a server from the catalog above to get started.
               </p>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient"
-                style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}
-              >
-                <Plus size={15} /> Add your first app
-              </button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -709,14 +556,6 @@ export default function AppsPage() {
         </section>
       </div>
 
-      {/* ── New App Modal ── */}
-      {modalOpen && (
-        <NewAppModal
-          addedNames={addedNames}
-          onClose={() => setModalOpen(false)}
-          onAdd={name => addWsMcp(name)}
-        />
-      )}
     </div>
   );
 }

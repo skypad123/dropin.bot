@@ -19,13 +19,15 @@ import FilesPage from './pages/FilesPage';
 import AppsPage from './pages/AppsPage';
 import ToolsPage from './pages/ToolsPage';
 import PolicyPage from './pages/PolicyPage';
+import DashboardPage from './pages/DashboardPage';
 
 function AppShell() {
   return (
     <div className="lg:ml-60">
       <Sidebar />
       <Routes>
-        <Route path="/" element={<Navigate to="/workflows" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBasesPage /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><TeamsPage /></ProtectedRoute>} />

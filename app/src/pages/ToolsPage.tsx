@@ -358,7 +358,7 @@ export default function ToolsPage() {
 
         {/* ── Zone 2: Search ── */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <p className="section-label mb-0">add tools</p>
             <span
               className="font-mono text-[10px] px-2 py-0.5 rounded-full"
@@ -368,56 +368,78 @@ export default function ToolsPage() {
             </span>
           </div>
 
-          {/* Search bar — prominent, Google-style */}
-          <div className="relative max-w-2xl mb-2">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
-            <input
-              className="form-input w-full font-body text-base"
-              style={{ paddingLeft: '2.75rem', paddingRight: skillSearch ? '2.5rem' : '1rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', fontSize: 15 }}
-              placeholder="Search tools…"
-              value={skillSearch}
-              onChange={e => setSkillSearch(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Escape') setSkillSearch(''); }}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            {skillSearch && (
-              <button
-                type="button"
-                onClick={() => setSkillSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full transition-colors"
-                style={{ color: 'var(--text-muted)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Result count — only shown when query is active */}
-          {skillSearch.trim() && (
-            <p className="font-mono text-[10px] mb-4" style={{ color: 'var(--text-muted)', paddingLeft: '0.25rem' }}>
+          {/* Search bar + result count — fixed-height group, no layout shift */}
+          <div className="max-w-lg mb-4">
+            {/* Search input */}
+            <div className="relative">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
+              <input
+                className="form-input w-full"
+                style={{ paddingLeft: '2rem', paddingRight: skillSearch ? '2rem' : '0.75rem', padding: '8px 12px 8px 32px', fontSize: 13 }}
+                placeholder="Search tools…"
+                value={skillSearch}
+                onChange={e => setSkillSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') setSkillSearch(''); }}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {skillSearch && (
+                <button
+                  type="button"
+                  onClick={() => setSkillSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            {/* Result count — always occupies same height, invisible when no query */}
+            <p
+              className="font-mono text-[10px] mt-1.5 pl-0.5"
+              style={{
+                color: 'var(--text-muted)',
+                visibility: skillSearch.trim() ? 'visible' : 'hidden',
+              }}
+            >
               {searchResults.length === 0
                 ? 'No results'
                 : `About ${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}`}
             </p>
-          )}
+          </div>
 
-          {/* Horizontal catalog cards — live results, max 10 */}
-          {searchResults.length > 0 && (
-            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-              {searchResults.map(s => (
-                <ToolCatalogCard
-                  key={s.label}
-                  skill={s}
-                  query={skillSearch}
-                  activeCount={tools.filter(t => t.label === s.label).length}
-                  onAdd={() => addTool(s.label)}
-                />
-              ))}
-            </div>
-          )}
+          {/* Card strip — fixed height container, always rendered */}
+          <div style={{ minHeight: 220 }}>
+            {searchResults.length > 0 ? (
+              <div className="scroll-x-cards flex gap-3">
+                {searchResults.map(s => (
+                  <ToolCatalogCard
+                    key={s.label}
+                    skill={s}
+                    query={skillSearch}
+                    activeCount={tools.filter(t => t.label === s.label).length}
+                    onAdd={() => addTool(s.label)}
+                  />
+                ))}
+              </div>
+            ) : skillSearch.trim() ? (
+              <div
+                className="flex items-center justify-center rounded-2xl"
+                style={{ height: 200, border: '1.5px dashed var(--border-color)', background: 'var(--bg-surface)' }}
+              >
+                <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>No matching tools found.</p>
+              </div>
+            ) : (
+              <div
+                className="flex items-center justify-center rounded-2xl"
+                style={{ height: 200, border: '1.5px dashed var(--border-color)', background: 'var(--bg-surface)' }}
+              >
+                <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>Search above to browse available tools.</p>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ── Zone 3: Active Tools ── */}

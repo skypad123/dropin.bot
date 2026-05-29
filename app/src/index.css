@@ -121,4 +121,47 @@
     box-shadow: var(--shadow-lg);
     border-color: rgba(192, 86, 64, 0.3);
   }
+
+  /* Horizontal card strip scrollbar */
+  .scroll-x-cards {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+    padding-bottom: 10px;
+  }
+  .scroll-x-cards::-webkit-scrollbar {
+    height: 4px;
+  }
+  .scroll-x-cards::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 99px;
+  }
+  .scroll-x-cards::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 99px;
+  }
+  .scroll-x-cards::-webkit-scrollbar-thumb:hover {
+    background: var(--burnt-orange);
+  }
+
+  /* Vertical KB sidebar scrollbar */
+  .scroll-y-kb {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+  }
+  .scroll-y-kb::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scroll-y-kb::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 99px;
+  }
+  .scroll-y-kb::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 99px;
+  }
+  .scroll-y-kb::-webkit-scrollbar-thumb:hover {
+    background: var(--burnt-orange);
+  }
 }

@@ -5,6 +5,7 @@ import {
   Download, Copy, MoreHorizontal, ChevronDown, ChevronRight, Search, Layers
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { InfoTooltip } from '../components/shared';
 import { useWorkspace } from '../context/WorkspaceContext';
 import type { EnvNode, EnvFileType } from '../types';
 
@@ -140,15 +141,11 @@ export default function FilesPage() {
   return (
     <div className="flex flex-col" style={{ height: '100vh', background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="flex-shrink-0 px-6 lg:px-10 h-16 flex items-center justify-between" style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,86,64,0.10)' }}>
-            <FolderOpen size={18} style={{ color: 'var(--burnt-orange)' }} />
-          </div>
-          <div>
-            <h1 className="font-display font-bold text-lg leading-tight" style={{ color: 'var(--text-primary)' }}>Files</h1>
-            <p className="font-body text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>Browse and manage workspace files</p>
-          </div>
+      <div className="flex-shrink-0 px-4 sm:px-6 lg:px-10 py-4" style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
+        <p className="section-label mb-0">setup</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Files</h1>
+          <InfoTooltip content="Browse and manage your workspace files and folders. Upload documents, scripts, and assets that your agents can access." />
         </div>
       </div>
 

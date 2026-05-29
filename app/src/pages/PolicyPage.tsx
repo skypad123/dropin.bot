@@ -3,7 +3,67 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Bot, Layers, ChevronDown, ChevronRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useWorkspace } from '../context/WorkspaceContext';
+import { InfoTooltip } from '../components/shared';
 import type { Instance } from '../types';
+
+// ── Agent row ─────────────────────────────────────────────────────────────────
+
+function AgentRow({
+  inst,
+  perms,
+  onToggle,
+  onEdit,
+}: {
+  inst: Instance;
+  perms: { read: boolean; write: boolean };
+  onToggle: (field: 'read' | 'write') => void;
+  onEdit: () => void;
+}) {
+  const p = perms ?? { read: true, write: false };
+  const statusColor = inst.status === 'running' ? '#22c55e' : inst.status === 'stopped' ? 'var(--text-muted)' : '#ef4444';
+  return (
+    <div className="flex items-center gap-4 py-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
+      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,86,64,0.08)' }}>
+        <Bot size={16} style={{ color: 'var(--burnt-orange)' }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-body font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{inst.name}</p>
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColor }} />
+        </div>
+        <p className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>{inst.model}</p>
+      </div>
+      <div className="flex items-center gap-6">
+        {(['read', 'write'] as const).map(field => {
+          const isOn = p[field];
+          return (
+            <div key={field} className="flex flex-col items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{field}</span>
+              <button
+                onClick={() => onToggle(field)}
+                className="relative w-11 h-6 rounded-full transition-all duration-200"
+                style={{ background: isOn ? 'var(--burnt-orange)' : 'var(--muted-beige)' }}
+              >
+                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-200" style={{ left: isOn ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
+              </button>
+            </div>
+          );
+        })}
+        <button
+          onClick={onEdit}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+          style={{ border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--burnt-orange)'; e.currentTarget.style.color = 'var(--burnt-orange)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          Edit →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PolicyPage() {
   const navigate = useNavigate();
@@ -28,70 +88,15 @@ export default function PolicyPage() {
     });
   };
 
-  const AgentRow = ({ inst }: { inst: Instance }) => {
-    const p = perms[inst.id] ?? { read: true, write: false };
-    const statusColor = inst.status === 'running' ? '#22c55e' : inst.status === 'stopped' ? 'var(--text-muted)' : '#ef4444';
-    return (
-      <div className="flex items-center gap-4 py-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,86,64,0.08)' }}>
-          <Bot size={16} style={{ color: 'var(--burnt-orange)' }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-body font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{inst.name}</p>
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColor }} />
-          </div>
-          <p className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>{inst.model}</p>
-        </div>
-        <div className="flex items-center gap-6">
-          {(['read', 'write'] as const).map(field => {
-            const isOn = p[field];
-            return (
-              <div key={field} className="flex flex-col items-center gap-1.5">
-                <span className="font-mono text-[10px] uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{field}</span>
-                <button
-                  onClick={() => toggle(inst.id, field)}
-                  className="relative w-11 h-6 rounded-full transition-all duration-200"
-                  style={{ background: isOn ? 'var(--burnt-orange)' : 'var(--muted-beige)' }}
-                >
-                  <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-200" style={{ left: isOn ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
-                </button>
-              </div>
-            );
-          })}
-          <button
-            onClick={() => navigate(`/agents/${inst.id}`)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
-            style={{ border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--burnt-orange)'; e.currentTarget.style.color = 'var(--burnt-orange)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-          >
-            Edit →
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 px-6 lg:px-10 h-16 flex items-center justify-between" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,86,64,0.10)' }}>
-            <Lock size={18} style={{ color: 'var(--burnt-orange)' }} />
-          </div>
-          <div>
-            <h1 className="font-display font-bold text-lg leading-tight" style={{ color: 'var(--text-primary)' }}>Policy</h1>
-            <p className="font-body text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>Manage agent access permissions per workspace</p>
-          </div>
+      <div className="sticky top-0 z-10 px-4 sm:px-6 lg:px-10 py-4 flex-shrink-0" style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
+        <p className="section-label mb-0">setup</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Policy</h1>
+          <InfoTooltip content="Control what each agent can read and write within your workspaces. Toggle read and write permissions per agent to enforce access boundaries." />
         </div>
-        <button
-          className="px-5 py-2 rounded-full text-sm font-semibold text-white brand-gradient"
-          style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}
-        >
-          Save All
-        </button>
       </div>
 
       <div className="px-6 lg:px-10 py-8 max-w-3xl space-y-4">
@@ -157,7 +162,7 @@ export default function PolicyPage() {
                           <span className="w-14" />
                         </div>
                       </div>
-                      {attachedAgents.map(inst => <AgentRow key={inst.id} inst={inst} />)}
+                      {attachedAgents.map(inst => <AgentRow key={inst.id} inst={inst} perms={perms[inst.id] ?? { read: true, write: false }} onToggle={field => toggle(inst.id, field)} onEdit={() => navigate(`/agents/${inst.id}`)} />)}
                     </div>
                   )}
                 </div>

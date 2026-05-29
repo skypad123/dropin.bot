@@ -371,142 +371,6 @@ function ChannelRow({
   );
 }
 
-// ── New Channel Modal ─────────────────────────────────────────────────────────
-
-function NewChannelModal({
-  defaultType,
-  instances,
-  onClose,
-  onCreate,
-}: {
-  defaultType: ChannelType;
-  instances: ReturnType<typeof useStore>['instances'];
-  onClose: () => void;
-  onCreate: (ch: Omit<Channel, 'id' | 'messages' | 'createdAt' | 'config' | 'workspaceId'>) => void;
-}) {
-  const [type, setType] = useState<ChannelType>(defaultType);
-  const [name, setName] = useState('');
-  const [desc, setDesc] = useState('');
-  const [agentId, setAgentId] = useState('');
-
-  const handleCreate = () => {
-    if (!name.trim()) return;
-    onCreate({ name: name.trim(), type, status: 'disconnected', agentId: agentId || null, description: desc.trim() });
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(45,42,38,0.55)', backdropFilter: 'blur(6px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl p-6"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>New Channel</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Type grid */}
-          <div>
-            <label className="section-label mb-2 block">Channel Type</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(Object.entries(CHANNEL_META) as [ChannelType, typeof CHANNEL_META[ChannelType]][]).map(([key, meta]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setType(key)}
-                  className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl transition-all duration-150"
-                  style={{
-                    border: `1.5px solid ${type === key ? meta.color : 'var(--border-color)'}`,
-                    background: type === key ? meta.bg : 'var(--bg-elevated)',
-                  }}
-                  onMouseEnter={e => { if (type !== key) e.currentTarget.style.borderColor = meta.color + '55'; }}
-                  onMouseLeave={e => { if (type !== key) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                >
-                  <span style={{ color: meta.color, display: 'flex' }}>{meta.svg}</span>
-                  <span
-                    className="font-mono text-[9px] font-semibold text-center leading-tight"
-                    style={{ color: type === key ? meta.color : 'var(--text-muted)' }}
-                  >
-                    {meta.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="section-label mb-1.5 block">Channel Name</label>
-            <input
-              className="form-input w-full"
-              placeholder={`e.g. ${CHANNEL_META[type].label} Bot`}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleCreate()}
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="section-label mb-1.5 block">
-              Description <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
-            </label>
-            <input
-              className="form-input w-full"
-              placeholder="What does this channel do?"
-              value={desc}
-              onChange={e => setDesc(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="section-label mb-1.5 block">
-              Assign Agent <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
-            </label>
-            <select className="form-input form-select w-full" value={agentId} onChange={e => setAgentId(e.target.value)}>
-              <option value="">— Choose later —</option>
-              {instances.map(i => <option key={i.id} value={i.id}>{i.name} ({i.model})</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--burnt-orange)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCreate}
-            disabled={!name.trim()}
-            className="px-5 py-2 rounded-full text-sm font-semibold text-white brand-gradient disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ boxShadow: name.trim() ? '0 4px 12px rgba(192,86,64,0.25)' : 'none' }}
-          >
-            Create Channel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ChannelsPage() {
@@ -518,8 +382,6 @@ export default function ChannelsPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<ChannelType | 'all'>('all');
   const [openId, setOpenId] = useState<string | null>(null);
-  const [modalType, setModalType] = useState<ChannelType | null>(null);
-
   const filtered = workspaceChannels.filter(c => {
     const matchSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -531,17 +393,20 @@ export default function ChannelsPage() {
   const countByType = (type: ChannelType) =>
     workspaceChannels.filter(c => c.type === type).length;
 
-  const handleCreate = (partial: Omit<Channel, 'id' | 'messages' | 'createdAt' | 'config' | 'workspaceId'>) => {
+  const handleCreate = (type: ChannelType) => {
     const nc: Channel = {
       id: `ch-${Date.now()}`,
+      name: `${CHANNEL_META[type].label} Channel`,
+      type,
+      status: 'disconnected',
+      agentId: null,
+      description: '',
       messages: 0,
       createdAt: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       config: {},
       workspaceId: activeWorkspaceId ?? '',
-      ...partial,
     };
     addChannel(nc);
-    setModalType(null);
     setOpenId(nc.id);
   };
 
@@ -574,13 +439,7 @@ export default function ChannelsPage() {
               <InfoTooltip content="Channels are the integration surfaces where your agents connect to the outside world — Slack, Discord, web widgets, WhatsApp, REST API, email, and more. Each channel can be connected and configured independently." />
             </div>
           </div>
-          <button
-            onClick={() => setModalType('web-widget')}
-            className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient flex-shrink-0"
-            style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.25)' }}
-          >
-            <Plus size={16} /> <span className="hidden xs:inline sm:inline">New Channel</span>
-          </button>
+
         </div>
       </div>
 
@@ -649,13 +508,13 @@ export default function ChannelsPage() {
               {Object.keys(CHANNEL_META).length} platforms
             </span>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          <div className="scroll-x-cards flex gap-3">
             {(Object.keys(CHANNEL_META) as ChannelType[]).map(type => (
               <CatalogCard
                 key={type}
                 type={type}
                 activeCount={countByType(type)}
-                onAdd={t => setModalType(t)}
+                onAdd={t => handleCreate(t)}
               />
             ))}
           </div>
@@ -720,16 +579,10 @@ export default function ChannelsPage() {
               <p className="font-display font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 No channels yet
               </p>
-              <p className="font-body text-sm mt-1 mb-5" style={{ color: 'var(--text-muted)' }}>
+              <p className="font-body text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
                 Pick a platform above to get started.
               </p>
-              <button
-                onClick={() => setModalType('web-widget')}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white brand-gradient"
-                style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}
-              >
-                <Plus size={15} /> Add your first channel
-              </button>
+
             </div>
           ) : (
             <div className="space-y-3">
@@ -754,15 +607,6 @@ export default function ChannelsPage() {
 
       </div>
 
-      {/* ── New Channel Modal ── */}
-      {modalType && (
-        <NewChannelModal
-          defaultType={modalType}
-          instances={instances}
-          onClose={() => setModalType(null)}
-          onCreate={handleCreate}
-        />
-      )}
     </div>
   );
 }

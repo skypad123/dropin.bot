@@ -9,11 +9,87 @@ import { InfoTooltip } from '../components/shared';
 import { EXTERNAL_SOURCE_TYPES, VECTOR_STORES, EMBEDDING_MODELS, RAG_LLMS } from '../data';
 import type { KnowledgeBase, KBSource, KBVisibility } from '../types';
 
+// ── Radio list ────────────────────────────────────────────────────────────────
+
+function RadioList<T extends string>({
+  label,
+  icon,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  options: { id: T; label: string; desc?: string; badge?: string; meta?: string }[];
+  selected: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div className="rounded-2xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <span style={{ color: 'var(--burnt-orange)', display: 'flex' }}>{icon}</span>
+        <h3 className="font-display font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>{label}</h3>
+      </div>
+      <div className="space-y-1.5">
+        {options.map(opt => {
+          const sel = opt.id === selected;
+          return (
+            <button key={opt.id} type="button"
+              onClick={() => onChange(opt.id)}
+              className="w-full text-left rounded-lg px-3 py-2 flex items-center gap-3 transition-all duration-150"
+              style={{
+                border: `1.5px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}`,
+                background: sel ? 'rgba(192,86,64,0.05)' : 'var(--bg-elevated)',
+              }}
+              onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
+              onMouseLeave={e => { if (!sel) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+            >
+              <div className="w-3 h-3 rounded-full flex-shrink-0 flex items-center justify-center" style={{ border: `2px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}` }}>
+                {sel && <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--burnt-orange)' }} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-[10px]" style={{ color: sel ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>{opt.label}</span>
+                  {opt.meta && <span className="font-body text-[10px]" style={{ color: 'var(--text-muted)' }}>{opt.meta}</span>}
+                </div>
+                {opt.desc && <p className="font-body text-[10px] mt-0.5 leading-tight" style={{ color: 'var(--text-muted)' }}>{opt.desc}</p>}
+              </div>
+              {opt.badge && (
+                <span className="font-mono text-[9px] px-1 py-0.5 rounded flex-shrink-0" style={{ background: 'var(--bg-primary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
+                  {opt.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Status badge helper ────────────────────────────────────────────────────────
+
+const sourceStatus = (s: 'indexed' | 'processing' | 'error') =>
+  ({
+    indexed:    { dot: '#2D7D46', label: 'Indexed',    bg: 'rgba(45,125,70,0.10)',  color: '#2D7D46'   },
+    processing: { dot: '#F59E0B', label: 'Processing',  bg: 'rgba(245,158,11,0.10)', color: '#F59E0B'  },
+    error:      { dot: '#DC2626', label: 'Error',       bg: 'rgba(220,38,38,0.10)',  color: '#DC2626'  },
+  })[s];
+
+const kbStatus = (s: 'active' | 'indexing' | 'error') =>
+  ({
+    active:   { dot: '#2D7D46', label: 'Active',   bg: 'rgba(45,125,70,0.10)',  color: '#2D7D46'   },
+    indexing: { dot: '#F59E0B', label: 'Indexing',  bg: 'rgba(245,158,11,0.10)', color: '#F59E0B'  },
+    error:    { dot: '#DC2626', label: 'Error',     bg: 'rgba(220,38,38,0.10)',  color: '#DC2626'  },
+  })[s];
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function KnowledgeBasesPage() {
   const { workspaces, knowledgeBases, addKnowledgeBase, updateKnowledgeBase, deleteKnowledgeBase } = useStore();
   const { activeWorkspaceId } = useWorkspace();
   const workspaceKbs = knowledgeBases.filter(kb => kb.workspaceId === activeWorkspaceId);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(workspaceKbs[0]?.id ?? null);
 
   const selected = workspaceKbs.find(k => k.id === activeId) ?? null;
 
@@ -34,104 +110,161 @@ export default function KnowledgeBasesPage() {
     });
   };
 
-  const totalChunks = (kb: KnowledgeBase) => kb.sources.reduce((s, src) => s + src.chunks, 0);
+  const totalChunks = (kb: KnowledgeBase) =>
+    kb.sources.reduce((s, src) => s + src.chunks, 0);
+
+  const handleNew = () => {
+    const id = `kb-${Date.now()}`;
+    const nb: KnowledgeBase = {
+      id, name: 'New Knowledge Base', description: '',
+      status: 'indexing', sources: [],
+      vectorStore: 'Pinecone', embeddingModel: 'text-embedding-3-large', ragLLM: 'gpt-4o',
+      retrieval: { topK: 5, minSimilarity: 72, chunkSize: 512 },
+      permissions: { workspaceIds: [], visibility: 'private' },
+      workspaceId: activeWorkspaceId ?? '',
+    };
+    addKnowledgeBase(nb);
+    setActiveId(id);
+  };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 lg:px-10 py-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-color)' }}>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display font-bold text-2xl" style={{ color: 'var(--text-primary)' }}>Knowledge Bases</h1>
-            <InfoTooltip content="A knowledge base is a retrieval pipeline — connect sources (PDFs, Notion, web crawls), choose a vector store and embedding model, and agents query it to answer questions. One knowledge base can be shared across multiple workspaces with permission controls." />
-          </div>
-          <p className="font-body text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Shared retrieval pipelines — connect sources from multiple workspaces and attach to any agent.
-          </p>
+    <div className="h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+
+      {/* ── Zone 0: Sticky Header ── */}
+      <div
+        className="sticky top-0 z-10 px-4 sm:px-6 lg:px-10 py-4 flex-shrink-0"
+        style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}
+      >
+        <p className="section-label mb-0">design</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Knowledge Bases</h1>
+          <InfoTooltip content="A knowledge base is a retrieval pipeline — connect sources (PDFs, Notion, web crawls), choose a vector store and embedding model, and agents query it to answer questions. One knowledge base can be shared across multiple workspaces with permission controls." />
         </div>
-        <button
-          onClick={() => {
-            const id = `kb-${Date.now()}`;
-            const nb: KnowledgeBase = {
-              id, name: 'New Knowledge Base', description: 'Describe this knowledge base…',
-              status: 'indexing', sources: [],
-              vectorStore: 'Pinecone', embeddingModel: 'text-embedding-3-large', ragLLM: 'gpt-4o',
-              retrieval: { topK: 5, minSimilarity: 72, chunkSize: 512 },
-              permissions: { workspaceIds: [], visibility: 'private' },
-              workspaceId: activeWorkspaceId ?? '',
-            };
-            addKnowledgeBase(nb);
-            setActiveId(id);
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white brand-gradient flex-shrink-0"
-          style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}
-        >
-          <Plus size={14} /> New Knowledge Base
-        </button>
       </div>
 
       <div className="flex flex-1 min-h-0">
-        {/* Left list */}
-        <div className="flex flex-col gap-3 p-5 overflow-y-auto flex-shrink-0" style={{ width: '320px', borderRight: '1px solid var(--border-color)' }}>
-          {workspaceKbs.map(kb => (
-            <button key={kb.id} type="button" onClick={() => setActiveId(kb.id)}
-              className="text-left rounded-2xl p-4 transition-all duration-150 w-full"
-              style={{
-                background: activeId === kb.id ? 'rgba(192,86,64,0.06)' : 'var(--bg-surface)',
-                border: `1.5px solid ${activeId === kb.id ? 'var(--burnt-orange)' : 'var(--border-color)'}`,
-              }}
-              onMouseEnter={e => { if (activeId !== kb.id) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
-              onMouseLeave={e => { if (activeId !== kb.id) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+
+        {/* ── Left sidebar: KB list ── */}
+        <div
+          className="w-80 flex-shrink-0 flex flex-col overflow-hidden"
+          style={{ borderRight: '1px solid var(--border-color)' }}
+        >
+          {/* Sidebar header */}
+          <div className="flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-color)' }}>
+            <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+              {workspaceKbs.length} knowledge base{workspaceKbs.length !== 1 ? 's' : ''}
+            </span>
+            <button
+              onClick={handleNew}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-150"
+              style={{ background: 'rgba(192,86,64,0.08)', color: 'var(--burnt-orange)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--burnt-orange)'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(192,86,64,0.08)'; e.currentTarget.style.color = 'var(--burnt-orange)'; }}
             >
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <p className="font-display font-semibold text-sm leading-tight" style={{ color: activeId === kb.id ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>{kb.name}</p>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{
-                  background: kb.status === 'active' ? 'rgba(45,125,70,0.10)' : kb.status === 'error' ? 'rgba(220,38,38,0.10)' : 'rgba(192,86,64,0.10)',
-                  color: kb.status === 'active' ? '#2D7D46' : kb.status === 'error' ? '#DC2626' : 'var(--burnt-orange)',
-                }}>
-                  {kb.status === 'active' ? '● Active' : kb.status === 'error' ? '✕ Error' : '◌ Indexing'}
-                </span>
-              </div>
-              <p className="font-body text-xs mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{kb.description}</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{kb.sources.length} sources</span>
-                <span style={{ color: 'var(--border-color)' }}>·</span>
-                <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{totalChunks(kb).toLocaleString()} chunks</span>
-                <span style={{ color: 'var(--border-color)' }}>·</span>
-                <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{kb.vectorStore}</span>
-              </div>
+              <Plus size={12} /> New
             </button>
-          ))}
+          </div>
+
+          {/* KB cards */}
+          <div className="scroll-y-kb flex-1 p-3 space-y-2">
+            {workspaceKbs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <BookOpen size={32} strokeWidth={1.2} style={{ color: 'var(--text-muted)' }} />
+                <p className="font-display font-semibold text-xs mt-3" style={{ color: 'var(--text-primary)' }}>No knowledge bases yet</p>
+                <p className="font-body text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                  Create one to start building retrieval pipelines.
+                </p>
+                <button
+                  onClick={handleNew}
+                  className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold text-white brand-gradient"
+                  style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}
+                >
+                  <Plus size={12} /> New Knowledge Base
+                </button>
+              </div>
+            ) : (
+              workspaceKbs.map(kb => {
+                const st = kbStatus(kb.status);
+                const active = activeId === kb.id;
+                return (
+                  <button
+                    key={kb.id}
+                    type="button"
+                    onClick={() => setActiveId(kb.id)}
+                    className="text-left rounded-2xl p-3.5 transition-all duration-150 w-full"
+                    style={{
+                      background: active ? 'rgba(192,86,64,0.06)' : 'var(--bg-surface)',
+                      border: `1.5px solid ${active ? 'var(--burnt-orange)' : 'var(--border-color)'}`,
+                    }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="font-display font-semibold text-xs leading-tight" style={{ color: active ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>
+                        {kb.name}
+                      </p>
+                      <span
+                        className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        style={{ background: st.bg, color: st.color }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
+                        {st.label}
+                      </span>
+                    </div>
+                    {kb.description && (
+                      <p className="font-body text-[11px] mb-2 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                        {kb.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                        {kb.sources.length} source{kb.sources.length !== 1 ? 's' : ''}
+                      </span>
+                      <span style={{ color: 'var(--border-color)' }}>·</span>
+                      <span className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                        {totalChunks(kb).toLocaleString()} chunks
+                      </span>
+                      <span style={{ color: 'var(--border-color)' }}>·</span>
+                      <span className="font-mono text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                        {kb.vectorStore}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
 
-        {/* Detail panel */}
+        {/* ── Right panel: detail ── */}
         <div className="flex-1 overflow-y-auto p-6 lg:p-10">
           {!selected ? (
             <div className="flex flex-col items-center justify-center h-full gap-3" style={{ color: 'var(--text-muted)' }}>
               <BookOpen size={44} strokeWidth={1.2} />
-              <p className="font-body text-sm">Select a knowledge base to configure it.</p>
+              <p className="font-body text-sm">Select a knowledge base or create one to get started.</p>
             </div>
           ) : (
             <div className="space-y-6 max-w-2xl">
 
-              {/* Header row */}
+              {/* Title + actions */}
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 space-y-1.5">
                   <input
-                    className="font-display font-bold text-xl bg-transparent border-none outline-none w-full"
-                    style={{ color: 'var(--text-primary)' }}
+                    className="form-input font-display font-semibold text-lg"
+                    style={{ paddingTop: 10, paddingBottom: 10 }}
                     value={selected.name}
                     onChange={e => update(selected.id, { name: e.target.value })}
                   />
                   <input
-                    className="font-body text-sm bg-transparent border-none outline-none w-full mt-1"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="form-input font-body text-xs"
+                    style={{ paddingTop: 8, paddingBottom: 8 }}
+                    placeholder="Description…"
                     value={selected.description}
                     onChange={e => update(selected.id, { description: e.target.value })}
                   />
                 </div>
                 <button
-                  onClick={() => { deleteKnowledgeBase(selected.id); setActiveId(null); }}
+                  onClick={() => { if (window.confirm('Delete this knowledge base?')) { deleteKnowledgeBase(selected.id); setActiveId(null); } }}
                   className="p-2 rounded-xl flex-shrink-0 transition-colors duration-150"
                   style={{ color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}
                   onMouseEnter={e => { e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.borderColor = 'rgba(220,38,38,0.30)'; }}
@@ -145,36 +278,41 @@ export default function KnowledgeBasesPage() {
                   <Database size={14} style={{ color: 'var(--burnt-orange)' }} />
                   <h3 className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Sources</h3>
                   <span className="ml-auto font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                    {selected.sources.length} sources · {totalChunks(selected).toLocaleString()} chunks
+                    {selected.sources.length} source{selected.sources.length !== 1 ? 's' : ''} · {totalChunks(selected).toLocaleString()} chunks
                   </span>
                 </div>
 
                 {/* Existing sources */}
-                <div className="space-y-2 mb-3">
-                  {selected.sources.map(src => (
-                    <div key={src.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-color)' }}>
-                      <span className="text-base flex-shrink-0">{src.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body font-medium text-xs truncate" style={{ color: 'var(--text-primary)' }}>{src.name}</p>
-                        <p className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{src.type} · {src.size} · {src.chunks} chunks</p>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{
-                        background: src.status === 'indexed' ? 'rgba(45,125,70,0.10)' : src.status === 'error' ? 'rgba(220,38,38,0.10)' : 'rgba(192,86,64,0.10)',
-                        color: src.status === 'indexed' ? '#2D7D46' : src.status === 'error' ? '#DC2626' : 'var(--burnt-orange)',
-                      }}>
-                        {src.status === 'indexed' ? '● Indexed' : src.status === 'error' ? '✕ Error' : '◌ Processing'}
-                      </span>
-                      <button
-                        onClick={() => update(selected.id, { sources: selected.sources.filter(s => s.id !== src.id) })}
-                        className="p-1 rounded-lg flex-shrink-0 transition-colors duration-150"
-                        style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={e => { e.currentTarget.style.color = '#DC2626'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-                      ><Trash2 size={12} /></button>
-                    </div>
-                  ))}
-                </div>
+                {selected.sources.length > 0 ? (
+                  <div className="space-y-2 mb-3">
+                    {selected.sources.map(src => {
+                      const st = sourceStatus(src.status);
+                      return (
+                        <div key={src.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-color)' }}>
+                          <span className="text-base flex-shrink-0">{src.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-body font-medium text-xs truncate" style={{ color: 'var(--text-primary)' }}>{src.name}</p>
+                            <p className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{src.type} · {src.size} · {src.chunks} chunks</p>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: st.bg, color: st.color }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
+                            {st.label}
+                          </span>
+                          <button
+                            onClick={() => update(selected.id, { sources: selected.sources.filter(s => s.id !== src.id) })}
+                            className="p-1 rounded-lg flex-shrink-0 transition-colors duration-150"
+                            style={{ color: 'var(--text-muted)' }}
+                            onMouseEnter={e => { e.currentTarget.style.color = '#DC2626'; }}
+                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+                          ><Trash2 size={12} /></button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="font-body text-xs mb-3" style={{ color: 'var(--text-muted)' }}>No sources yet — add one below.</p>
+                )}
 
                 {/* Add source row */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -188,7 +326,6 @@ export default function KnowledgeBasesPage() {
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; e.currentTarget.style.color = 'var(--burnt-orange)'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   ><CloudUpload size={12} /> Upload File</button>
-
                   {EXTERNAL_SOURCE_TYPES.map(ext => (
                     <button key={ext.type}
                       onClick={() => {
@@ -206,98 +343,30 @@ export default function KnowledgeBasesPage() {
 
               {/* ── Vector Store + Embedding ── */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Layers size={13} style={{ color: 'var(--burnt-orange)' }} />
-                    <h3 className="font-display font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>Vector Store</h3>
-                  </div>
-                  <div className="space-y-1.5">
-                    {VECTOR_STORES.map(vs => {
-                      const sel = vs.id === selected.vectorStore;
-                      return (
-                        <button key={vs.id} type="button"
-                          onClick={() => update(selected.id, { vectorStore: vs.id as KnowledgeBase['vectorStore'] })}
-                          className="w-full text-left rounded-lg px-3 py-2 flex items-start gap-2 transition-all duration-150"
-                          style={{ border: `1.5px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}`, background: sel ? 'rgba(192,86,64,0.05)' : 'var(--bg-elevated)' }}
-                          onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
-                          onMouseLeave={e => { if (!sel) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                        >
-                          <div className="mt-0.5 w-3 h-3 rounded-full flex-shrink-0 flex items-center justify-center" style={{ border: `2px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}` }}>
-                            {sel && <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--burnt-orange)' }} />}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-body text-xs font-medium" style={{ color: sel ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>{vs.label}</span>
-                              <span className="font-mono text-[9px] px-1 py-0.5 rounded" style={{ background: 'var(--bg-primary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>{vs.badge}</span>
-                            </div>
-                            <p className="font-body text-[10px] mt-0.5 leading-tight" style={{ color: 'var(--text-muted)' }}>{vs.desc}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Brain size={13} style={{ color: 'var(--burnt-orange)' }} />
-                    <h3 className="font-display font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>Embedding Model</h3>
-                  </div>
-                  <div className="space-y-1.5">
-                    {EMBEDDING_MODELS.map(opt => {
-                      const sel = opt.id === selected.embeddingModel;
-                      return (
-                        <button key={opt.id} type="button"
-                          onClick={() => update(selected.id, { embeddingModel: opt.id })}
-                          className="w-full text-left rounded-lg px-3 py-2 flex items-center gap-2 transition-all duration-150"
-                          style={{ border: `1.5px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}`, background: sel ? 'rgba(192,86,64,0.05)' : 'var(--bg-elevated)' }}
-                          onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
-                          onMouseLeave={e => { if (!sel) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                        >
-                          <div className="w-3 h-3 rounded-full flex-shrink-0 flex items-center justify-center" style={{ border: `2px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}` }}>
-                            {sel && <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--burnt-orange)' }} />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-mono text-[10px]" style={{ color: sel ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>{opt.label}</span>
-                            <p className="font-body text-[10px]" style={{ color: 'var(--text-muted)' }}>{opt.provider} · {opt.dims}</p>
-                          </div>
-                          <span className="font-mono text-[9px] px-1 py-0.5 rounded flex-shrink-0" style={{ background: 'var(--bg-primary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>{opt.badge}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <RadioList
+                  label="Vector Store"
+                  icon={<Layers size={13} />}
+                  selected={selected.vectorStore}
+                  onChange={id => update(selected.id, { vectorStore: id as KnowledgeBase['vectorStore'] })}
+                  options={VECTOR_STORES.map(vs => ({ id: vs.id, label: vs.label, desc: vs.desc, badge: vs.badge }))}
+                />
+                <RadioList
+                  label="Embedding Model"
+                  icon={<Brain size={13} />}
+                  selected={selected.embeddingModel}
+                  onChange={id => update(selected.id, { embeddingModel: id })}
+                  options={EMBEDDING_MODELS.map(em => ({ id: em.id, label: em.label, meta: `${em.provider} · ${em.dims}`, badge: em.badge }))}
+                />
               </div>
 
               {/* ── RAG LLM ── */}
-              <div className="rounded-2xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Bot size={13} style={{ color: 'var(--burnt-orange)' }} />
-                  <h3 className="font-display font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>Synthesis Model</h3>
-                  <span className="ml-auto font-body text-[10px]" style={{ color: 'var(--text-muted)' }}>LLM used to answer from retrieved context</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {RAG_LLMS.map(llm => {
-                    const sel = llm.id === selected.ragLLM;
-                    return (
-                      <button key={llm.id} type="button"
-                        onClick={() => update(selected.id, { ragLLM: llm.id })}
-                        className="w-full text-left rounded-lg px-3 py-2 flex items-center gap-3 transition-all duration-150"
-                        style={{ border: `1.5px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}`, background: sel ? 'rgba(192,86,64,0.05)' : 'var(--bg-elevated)' }}
-                        onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(192,86,64,0.35)'; }}
-                        onMouseLeave={e => { if (!sel) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                      >
-                        <div className="w-3 h-3 rounded-full flex-shrink-0 flex items-center justify-center" style={{ border: `2px solid ${sel ? 'var(--burnt-orange)' : 'var(--border-color)'}` }}>
-                          {sel && <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--burnt-orange)' }} />}
-                        </div>
-                        <span className="font-display font-medium text-xs flex-1" style={{ color: sel ? 'var(--burnt-orange)' : 'var(--text-primary)' }}>{llm.label}</span>
-                        <span className="font-body text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{llm.provider}</span>
-                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: 'var(--bg-primary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>{llm.badge}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <RadioList
+                label="Synthesis Model"
+                icon={<Bot size={13} />}
+                selected={selected.ragLLM}
+                onChange={id => update(selected.id, { ragLLM: id })}
+                options={RAG_LLMS.map(llm => ({ id: llm.id, label: llm.label, meta: llm.provider, badge: llm.badge }))}
+              />
 
               {/* ── Retrieval Settings ── */}
               <div className="rounded-2xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
@@ -320,7 +389,10 @@ export default function KnowledgeBasesPage() {
                         value={selected.retrieval[s.key]}
                         onChange={e => update(selected.id, { retrieval: { ...selected.retrieval, [s.key]: Number(e.target.value) } })}
                         className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                        style={{ background: `linear-gradient(to right, var(--burnt-orange) ${s.pct}%, var(--border-color) ${s.pct}%)` }}
+                        style={{
+                          accentColor: 'var(--burnt-orange)',
+                          background: `linear-gradient(to right, var(--burnt-orange) ${s.pct}%, var(--border-color) ${s.pct}%)`,
+                        }}
                       />
                       <div className="flex justify-between mt-1">
                         <span className="font-body text-[10px]" style={{ color: 'var(--text-muted)' }}>{s.min}</span>
@@ -388,14 +460,6 @@ export default function KnowledgeBasesPage() {
                     })}
                   </div>
                 </div>
-              </div>
-
-              {/* Save */}
-              <div className="flex justify-end pb-4">
-                <button type="button" className="px-5 py-2 rounded-full text-sm font-semibold text-white brand-gradient"
-                  style={{ boxShadow: '0 4px 12px rgba(192,86,64,0.20)' }}>
-                  Save Changes
-                </button>
               </div>
 
             </div>

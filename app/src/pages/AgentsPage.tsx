@@ -21,9 +21,9 @@ export default function AgentsPage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 px-6 lg:px-10 py-4 flex items-center justify-between gap-4" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
+      <div className="sticky top-0 z-10 px-6 lg:px-10 py-4 flex items-center justify-between gap-4" style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
         <div>
           <p className="section-label mb-0">Agents</p>
           <div className="flex items-center gap-2 mt-0.5">

@@ -116,7 +116,7 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
           </button>
           <div>
             <p className="section-label mb-0">{mode === 'new' ? 'New Agent' : 'Edit Agent'}</p>
-            <h1 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+            <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>
               {mode === 'new' ? 'Configure your agent' : existing?.name}
             </h1>
           </div>
@@ -353,13 +353,11 @@ export default function AgentConfigPage({ mode }: { mode: 'new' | 'edit' }) {
               </div>
 
               <div
-                className="rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer"
-                style={{ border: '2px dashed var(--border-color)' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--burnt-orange)'; e.currentTarget.style.background = 'rgba(192, 86, 64, 0.02)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.background = 'transparent'; }}
+                className="rounded-2xl p-8 text-center"
+                style={{ border: '1.5px dashed var(--border-color)', background: 'var(--bg-elevated)' }}
               >
-                <CloudUpload size={40} style={{ color: 'var(--text-muted)' }} className="mx-auto mb-3" />
-                <p className="font-body text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Drop files here or click to upload</p>
+                <CloudUpload size={36} style={{ color: 'var(--text-muted)' }} className="mx-auto mb-3" />
+                <p className="font-body text-sm font-medium" style={{ color: 'var(--text-muted)' }}>File upload coming soon</p>
                 <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>PDF, Markdown, TXT up to 10MB each</p>
               </div>
             </div>
