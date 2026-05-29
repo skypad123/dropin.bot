@@ -28,7 +28,7 @@ export default function AgentsPage() {
           <p className="section-label mb-0">Agents</p>
           <div className="flex items-center gap-2 mt-0.5">
             <h1 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Your Agents</h1>
-            <InfoTooltip content="An agent is an AI worker configured with a model, memory, personality, and skills. It runs inside a workspace and can query any knowledge base it has permission to access." />
+            <InfoTooltip content="An agent is an AI worker configured with a model, memory, system prompt, and skills. It runs inside a workspace and can query any knowledge base it has permission to access." />
           </div>
         </div>
         <button
