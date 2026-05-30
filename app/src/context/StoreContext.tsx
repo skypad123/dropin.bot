@@ -1,6 +1,25 @@
 import { createContext, useCallback, useContext, useState } from 'react';
-import type { Instance, InstanceInput, Workspace, AgentTeam, Channel, KnowledgeBase } from '../types';
+import type { Instance, InstanceInput, Workspace, AgentTeam, Channel, KnowledgeBase, WorkspaceOpenClaw } from '../types';
 import { INITIAL_INSTANCES, INITIAL_WORKSPACES, INITIAL_AGENT_TEAMS, INITIAL_CHANNELS, INITIAL_KBS, CONNECTED_APPS_TEMPLATE } from '../data';
+
+/** Read persisted openClaw config from localStorage for a workspace. */
+function loadOpenClaw(workspaceId: string): WorkspaceOpenClaw | undefined {
+  try {
+    const raw = localStorage.getItem(`dropin-openclaw-${workspaceId}`);
+    if (!raw) return undefined;
+    return JSON.parse(raw) as WorkspaceOpenClaw;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Hydrate all workspaces with any persisted openClaw config from localStorage. */
+function hydrateWorkspaces(workspaces: Workspace[]): Workspace[] {
+  return workspaces.map(ws => ({
+    ...ws,
+    openClaw: ws.openClaw ?? loadOpenClaw(ws.id),
+  }));
+}
 
 const StoreContext = createContext<{
   instances: Instance[];
@@ -9,7 +28,7 @@ const StoreContext = createContext<{
   deleteInstance: (id: string) => void;
   getInstance: (id: string) => Instance | undefined;
   workspaces: Workspace[];
-  addWorkspace: (w: Omit<Workspace, 'id' | 'isDefault' | 'connectedApps' | 'documents' | 'dataSources' | 'collaborators'>) => void;
+  addWorkspace: (w: Omit<Workspace, 'id' | 'isDefault' | 'connectedApps' | 'documents' | 'dataSources' | 'collaborators' | 'openClaw'>) => void;
   updateWorkspace: (id: string, data: Partial<Workspace>) => void;
   deleteWorkspace: (id: string) => void;
   getWorkspace: (id: string) => Workspace | undefined;
@@ -54,7 +73,7 @@ export function useStore() { return useContext(StoreContext); }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [instances, setInstances] = useState<Instance[]>(INITIAL_INSTANCES);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(INITIAL_WORKSPACES);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>(() => hydrateWorkspaces(INITIAL_WORKSPACES));
   const [teams, setTeams] = useState<AgentTeam[]>(INITIAL_AGENT_TEAMS);
   const [channels, setChannels] = useState<Channel[]>(INITIAL_CHANNELS);
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>(INITIAL_KBS);
@@ -78,7 +97,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const getInstance = useCallback((id: string) => instances.find(i => i.id === id), [instances]);
 
-  const addWorkspace = useCallback((data: Omit<Workspace, 'id' | 'isDefault' | 'connectedApps' | 'documents' | 'dataSources' | 'mcps' | 'env' | 'collaborators'>) => {
+  const addWorkspace = useCallback((data: Omit<Workspace, 'id' | 'isDefault' | 'connectedApps' | 'documents' | 'dataSources' | 'mcps' | 'env' | 'collaborators' | 'openClaw'>) => {
     const newWs: Workspace = {
       ...data,
       id: 'ws-' + Date.now(),

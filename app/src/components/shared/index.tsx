@@ -1,11 +1,32 @@
 import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Plug, Slack, MessageCircle, Globe, X, Bot, Sun, Moon, LogOut, Layers, BookOpen, Users, MessageSquare, Settings, FolderOpen, Zap, Lock, ChevronDown, Check, Plus, LayoutDashboard } from 'lucide-react';
+import { Plug, Slack, MessageCircle, Globe, X, Bot, Sun, Moon, LogOut, Layers, BookOpen, Users, MessageSquare, Settings, FolderOpen, Zap, Lock, ChevronDown, Check, Plus, LayoutDashboard, Settings2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { useConnectionStore } from '../../stores/connectionStore';
 import type { Instance } from '../../types';
+import type { ConnStatus } from '../../lib/gatewayProtocol';
+
+/** Small colored dot indicating WS connection status */
+function WsStatusDot({ status }: { status: ConnStatus }) {
+  const colors: Record<ConnStatus, string> = {
+    connected:        '#2D7D46',
+    connecting:       '#C05640',
+    disconnected:     '#6B7280',
+    error:            '#DC2626',
+    pairing_required: '#D97706',
+  };
+  const isAnimating = status === 'connecting';
+  return (
+    <span
+      className={`w-2 h-2 rounded-full flex-shrink-0 ${isAnimating ? 'animate-pulse' : ''}`}
+      style={{ background: colors[status] }}
+      title={status.replace('_', ' ')}
+    />
+  );
+}
 
 export function InfoTooltip({ content }: { content: string }) {
   const [open, setOpen] = useState(false);
@@ -124,6 +145,8 @@ export function Sidebar() {
   const { logout } = useAuth();
   const { workspaces, addWorkspace } = useStore();
   const { activeWorkspace, activeWorkspaceId, setActiveWorkspace } = useWorkspace();
+  const { getConnection } = useConnectionStore();
+  const activeConnStatus = activeWorkspaceId ? getConnection(activeWorkspaceId).status : 'disconnected';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
   const [showNewWsModal, setShowNewWsModal] = useState(false);
@@ -132,7 +155,7 @@ export function Sidebar() {
 
   const handleCreateWorkspace = () => {
     if (!newWsName.trim()) return;
-    addWorkspace({ name: newWsName.trim(), description: newWsDesc.trim(), mcps: [], env: [] });
+    addWorkspace({ name: newWsName.trim(), description: newWsDesc.trim(), mcps: [], env: [], tools: [] });
     setNewWsName(''); setNewWsDesc(''); setShowNewWsModal(false);
   };
 
@@ -162,6 +185,7 @@ export function Sidebar() {
           >
             <Layers size={16} style={{ color: 'var(--burnt-orange)' }} />
             <span className="flex-1 text-left truncate">{activeWorkspace?.name ?? 'Select Workspace'}</span>
+            {activeWorkspace?.openClaw && <WsStatusDot status={activeConnStatus} />}
             <ChevronDown size={14} style={{ color: 'var(--text-muted)', transform: wsDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
 
@@ -192,7 +216,16 @@ export function Sidebar() {
                     </button>
                   ))}
                 </div>
-                <div className="border-t px-3.5 py-2" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="border-t px-3.5 py-2 space-y-1" style={{ borderColor: 'var(--border-color)' }}>
+                  <button
+                    onClick={() => { setWsDropdownOpen(false); navigate('/workspace-settings'); }}
+                    className="w-full flex items-center gap-2 text-xs font-medium transition-colors"
+                    style={{ color: 'var(--text-muted)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--burnt-orange)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+                  >
+                    <Settings2 size={14} /> Workspace Settings
+                  </button>
                   <button
                     onClick={() => { setWsDropdownOpen(false); setShowNewWsModal(true); }}
                     className="w-full flex items-center gap-2 text-xs font-medium transition-colors"

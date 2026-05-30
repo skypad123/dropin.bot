@@ -1,9 +1,19 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import { ProtectedRoute, Sidebar } from './components/shared';
+import { useOpenClawConnection } from './hooks/useOpenClawConnection';
+import { useWorkspace } from './context/WorkspaceContext';
+
+/** Forces a full remount of WorkspaceSettingsPage when the active workspace changes,
+ *  so useState initializers always reflect the current workspace's stored values. */
+function WorkspaceSettingsPageWrapper() {
+  const { activeWorkspaceId } = useWorkspace();
+  return <WorkspaceSettingsPage key={activeWorkspaceId ?? 'none'} />;
+}
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AgentsPage from './pages/AgentsPage';
@@ -20,8 +30,13 @@ import AppsPage from './pages/AppsPage';
 import ToolsPage from './pages/ToolsPage';
 import PolicyPage from './pages/PolicyPage';
 import DashboardPage from './pages/DashboardPage';
+import WorkspaceSettingsPage from './pages/WorkspaceSettingsPage';
 
 function AppShell() {
+  // Mount the SharedWorker connection manager once for this tab.
+  // It reacts to workspace switches and manages the WS lifecycle.
+  useOpenClawConnection();
+
   return (
     <div className="lg:ml-60">
       <Sidebar />
@@ -29,6 +44,7 @@ function AppShell() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettingsPageWrapper /></ProtectedRoute>} />
         <Route path="/knowledge" element={<ProtectedRoute><KnowledgeBasesPage /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><TeamsPage /></ProtectedRoute>} />
         <Route path="/teams/:id" element={<ProtectedRoute><TeamDetailPage /></ProtectedRoute>} />
@@ -68,6 +84,7 @@ export default function App() {
           <StoreProvider>
             <WorkspaceProvider>
               <RootRouter />
+              <Toaster position="bottom-right" richColors closeButton />
             </WorkspaceProvider>
           </StoreProvider>
         </AuthProvider>

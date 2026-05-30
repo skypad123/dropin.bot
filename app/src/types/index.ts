@@ -56,6 +56,11 @@ export interface Collaborator {
   joinedAt: string;
 }
 
+export interface WorkspaceOpenClaw {
+  endpoint: string;  // wss://host:18789
+  token: string;     // sk-oc-... shared-secret gateway token
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -68,6 +73,7 @@ export interface Workspace {
   tools: { id: string; label: string; config: Record<string, string> }[];
   env: EnvNode[];
   collaborators: Collaborator[];
+  openClaw?: WorkspaceOpenClaw;
 }
 
 export type EnvFileType = 'folder' | 'py' | 'js' | 'ts' | 'json' | 'md' | 'txt' | 'yaml' | 'sh' | 'img' | 'video' | 'audio' | 'zip' | 'file';
